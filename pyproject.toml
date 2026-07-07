@@ -1,0 +1,13 @@
+[project]
+name = "friend-cal"
+version = "0.1.0"
+description = "Shared calendar and scheduling system for a group of friends"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.110.0",
+    "uvicorn[standard]>=0.29.0",
+    "jinja2>=3.1.0",
+]
+
+[project.scripts]
+friend-cal = "main:app"

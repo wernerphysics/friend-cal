@@ -1,0 +1,26 @@
+<div class="calendar-header">
+  <button hx-get="/calendar?year={{ prev_year }}&month={{ prev_month }}"
+          hx-target="#calendar-container" hx-swap="innerHTML"
+          class="btn nav-btn">&larr; Prev</button>
+  <h2 class="month-title">{{ month_name }} {{ year }}</h2>
+  <button hx-get="/calendar?year={{ next_year }}&month={{ next_month }}"
+          hx-target="#calendar-container" hx-swap="innerHTML"
+          class="btn nav-btn">Next &rarr;</button>
+</div>
+<div class="calendar-grid">
+  <div class="day-name">Sun</div>
+  <div class="day-name">Mon</div>
+  <div class="day-name">Tue</div>
+  <div class="day-name">Wed</div>
+  <div class="day-name">Thu</div>
+  <div class="day-name">Fri</div>
+  <div class="day-name">Sat</div>
+  {% for week in weeks %}
+    {% for d in week %}
+    <div class="day-cell{% if not d.is_current_month %} other-month{% endif %}{% if d.is_today %} today{% endif %}"
+         data-date="{{ d.date }}">
+      <span class="day-number">{{ d.day }}</span>
+    </div>
+    {% endfor %}
+  {% endfor %}
+</div>

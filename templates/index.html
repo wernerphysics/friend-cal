@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Friend Calendar</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <script defer src="/static/calendar.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">Friend Calendar</h1>
+    <div id="calendar-container">
+      {% include "calendar.html" %}
+    </div>
+  </div>
+
+  <div id="event-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h2 class="modal-heading">New Event</h2>
+      <form id="event-form">
+        <input type="hidden" id="event-date" name="date">
+        <div class="form-group">
+          <label for="event-title">Title</label>
+          <input type="text" id="event-title" name="title" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="event-time">Time</label>
+          <input type="time" id="event-time" name="time">
+        </div>
+        <div class="form-group">
+          <label for="event-desc">Description</label>
+          <textarea id="event-desc" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save</button>
+          <button type="button" onclick="closeModal()" class="btn btn-secondary">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="detail-modal" class="modal hidden">
+    <div class="modal-backdrop" onclick="closeDetailModal()"></div>
+    <div class="modal-content">
+      <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+      <h2 class="modal-heading" id="detail-title"></h2>
+      <div id="detail-body">
+        <p id="detail-date"></p>
+        <p id="detail-time"></p>
+        <p id="detail-desc"></p>
+      </div>
+      <div class="form-actions">
+        <button onclick="deleteEvent()" class="btn btn-danger">Delete</button>
+        <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
