@@ -12,7 +12,10 @@
   <div class="container">
     <div class="title-bar">
       <h1 class="title">Friend Calendar</h1>
-      <button hx-post="/logout" hx-target="body" class="btn btn-secondary logout-btn">Logout</button>
+      <div class="title-right">
+        <span class="user-name">{{ user_name }}</span>
+        <button hx-post="/logout" hx-target="body" class="btn btn-secondary logout-btn">Logout</button>
+      </div>
     </div>
     <div id="calendar-container">
       {% include "calendar.html" %}
@@ -23,9 +26,11 @@
     <div class="modal-backdrop" onclick="closeModal()"></div>
     <div class="modal-content">
       <button class="modal-close" onclick="closeModal()">&times;</button>
-      <h2 class="modal-heading">New Event</h2>
-      <form id="event-form">
-        <input type="hidden" id="event-date" name="date">
+      <h2 class="modal-heading" id="create-heading">New Event</h2>
+      <form id="event-form" hx-post="/events" hx-target="#calendar-container" hx-swap="innerHTML">
+        <input type="hidden" name="date" id="event-date">
+        <input type="hidden" name="year" value="{{ year }}">
+        <input type="hidden" name="month" value="{{ month }}">
         <div class="form-group">
           <label for="event-title">Title</label>
           <input type="text" id="event-title" name="title" required autofocus>
@@ -35,8 +40,27 @@
           <input type="time" id="event-time" name="time">
         </div>
         <div class="form-group">
+          <label for="event-end-time">End Time</label>
+          <input type="time" id="event-end-time" name="end_time">
+        </div>
+        <div class="form-group">
+          <label for="event-location">Location</label>
+          <input type="text" id="event-location" name="location">
+        </div>
+        <div class="form-group">
           <label for="event-desc">Description</label>
           <textarea id="event-desc" name="description" rows="3"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="event-color">Color</label>
+          <select id="event-color" name="color">
+            <option value="#3b82f6">Blue</option>
+            <option value="#ef4444">Red</option>
+            <option value="#10b981">Green</option>
+            <option value="#f59e0b">Yellow</option>
+            <option value="#8b5cf6">Purple</option>
+            <option value="#ec4899">Pink</option>
+          </select>
         </div>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary">Save</button>
@@ -50,15 +74,14 @@
     <div class="modal-backdrop" onclick="closeDetailModal()"></div>
     <div class="modal-content">
       <button class="modal-close" onclick="closeDetailModal()">&times;</button>
-      <h2 class="modal-heading" id="detail-title"></h2>
-      <div id="detail-body">
-        <p id="detail-date"></p>
-        <p id="detail-time"></p>
-        <p id="detail-desc"></p>
-      </div>
-      <div class="form-actions">
-        <button onclick="deleteEvent()" class="btn btn-danger">Delete</button>
-        <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Close</button>
+      <div id="detail-content">
+        <h2 class="modal-heading">Event</h2>
+        <div id="detail-body">
+          <p>Select an event to see details.</p>
+        </div>
+        <div class="form-actions">
+          <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Close</button>
+        </div>
       </div>
     </div>
   </div>

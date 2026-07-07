@@ -1,14 +1,16 @@
-import calendar
 from contextlib import asynccontextmanager
 from datetime import date
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
 
 from auth import router as auth_router
-from db import init_db, engine
+from calendar_service import calendar_context
+from db import get_session, init_db, engine
+from events import router as events_router
 from templating import templates
 
 
@@ -22,6 +24,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 app.include_router(auth_router)
+app.include_router(events_router)
 
 
 @app.middleware("http")
@@ -47,62 +50,25 @@ app.add_middleware(
 )
 
 
-def build_calendar(year: int, month: int):
-    cal = calendar.Calendar(firstweekday=calendar.SUNDAY)
-    today = date.today()
-    weeks = []
-    for week in cal.monthdatescalendar(year, month):
-        w = []
-        for d in week:
-            w.append({
-                "day": d.day,
-                "date": d.isoformat(),
-                "is_current_month": d.month == month,
-                "is_today": d == today,
-            })
-        weeks.append(w)
-    return weeks
-
-
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request):
+async def index(request: Request, session=Depends(get_session)):
     today = date.today()
-    weeks = build_calendar(today.year, today.month)
-    prev_month = today.month - 1 if today.month > 1 else 12
-    prev_year = today.year - 1 if today.month == 1 else today.year
-    next_month = today.month + 1 if today.month < 12 else 1
-    next_year = today.year + 1 if today.month == 12 else today.year
-    return templates.TemplateResponse(request, "index.html", {
-        "year": today.year,
-        "month": today.month,
-        "month_name": calendar.month_name[today.month],
-        "weeks": weeks,
-        "prev_year": prev_year,
-        "prev_month": prev_month,
-        "next_year": next_year,
-        "next_month": next_month,
-    })
+    ctx = await calendar_context(today.year, today.month, request, session)
+    ctx["user_name"] = request.session.get("user_name", "")
+    return templates.TemplateResponse(request, "index.html", ctx)
 
 
 @app.get("/calendar", response_class=HTMLResponse)
-async def calendar_month(request: Request, year: int, month: int):
+async def calendar_month(
+    request: Request,
+    year: int,
+    month: int,
+    session=Depends(get_session),
+):
     if month < 1 or month > 12:
         month = date.today().month
-    weeks = build_calendar(year, month)
-    prev_month = month - 1 if month > 1 else 12
-    prev_year = year - 1 if month == 1 else year
-    next_month = month + 1 if month < 12 else 1
-    next_year = year + 1 if month == 12 else year
-    return templates.TemplateResponse(request, "calendar.html", {
-        "year": year,
-        "month": month,
-        "month_name": calendar.month_name[month],
-        "weeks": weeks,
-        "prev_year": prev_year,
-        "prev_month": prev_month,
-        "next_year": next_year,
-        "next_month": next_month,
-    })
+    ctx = await calendar_context(year, month, request, session)
+    return templates.TemplateResponse(request, "calendar.html", ctx)
 
 
 def run():

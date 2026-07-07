@@ -1,0 +1,41 @@
+<h2 class="modal-heading">Edit Event</h2>
+<form hx-put="/events/{{ event.id }}" hx-target="#calendar-container" hx-swap="innerHTML">
+  <input type="hidden" name="year" value="{{ year }}">
+  <input type="hidden" name="month" value="{{ month }}">
+  <input type="hidden" name="date" value="{{ event.date }}">
+  <div class="form-group">
+    <label for="edit-title">Title</label>
+    <input type="text" id="edit-title" name="title" value="{{ event.title }}" required>
+  </div>
+  <div class="form-group">
+    <label for="edit-time">Time</label>
+    <input type="time" id="edit-time" name="time" value="{{ event.time or '' }}">
+  </div>
+  <div class="form-group">
+    <label for="edit-end-time">End Time</label>
+    <input type="time" id="edit-end-time" name="end_time" value="{{ event.end_time or '' }}">
+  </div>
+  <div class="form-group">
+    <label for="edit-location">Location</label>
+    <input type="text" id="edit-location" name="location" value="{{ event.location or '' }}">
+  </div>
+  <div class="form-group">
+    <label for="edit-desc">Description</label>
+    <textarea id="edit-desc" name="description" rows="3">{{ event.description or '' }}</textarea>
+  </div>
+  <div class="form-group">
+    <label for="edit-color">Color</label>
+    <select id="edit-color" name="color">
+      <option value="#3b82f6" {% if event.color == '#3b82f6' %}selected{% endif %}>Blue</option>
+      <option value="#ef4444" {% if event.color == '#ef4444' %}selected{% endif %}>Red</option>
+      <option value="#10b981" {% if event.color == '#10b981' %}selected{% endif %}>Green</option>
+      <option value="#f59e0b" {% if event.color == '#f59e0b' %}selected{% endif %}>Yellow</option>
+      <option value="#8b5cf6" {% if event.color == '#8b5cf6' %}selected{% endif %}>Purple</option>
+      <option value="#ec4899" {% if event.color == '#ec4899' %}selected{% endif %}>Pink</option>
+    </select>
+  </div>
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Cancel</button>
+  </div>
+</form>

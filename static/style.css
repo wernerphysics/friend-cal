@@ -36,6 +36,18 @@ body {
   margin-bottom: 0;
 }
 
+.title-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-name {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
 .logout-btn {
   font-size: 0.78rem;
   padding: 5px 12px;
@@ -196,6 +208,18 @@ body {
 .event-chip:hover {
   background: #bfdbfe;
 }
+
+.event-chip[style*="border-left-color: #ef4444"] { background: #fee2e2; }
+.event-chip[style*="border-left-color: #10b981"] { background: #d1fae5; }
+.event-chip[style*="border-left-color: #f59e0b"] { background: #fef3c7; }
+.event-chip[style*="border-left-color: #8b5cf6"] { background: #ede9fe; }
+.event-chip[style*="border-left-color: #ec4899"] { background: #fce7f3; }
+
+.event-chip[style*="border-left-color: #ef4444"]:hover { background: #fecaca; }
+.event-chip[style*="border-left-color: #10b981"]:hover { background: #a7f3d0; }
+.event-chip[style*="border-left-color: #f59e0b"]:hover { background: #fde68a; }
+.event-chip[style*="border-left-color: #8b5cf6"]:hover { background: #ddd6fe; }
+.event-chip[style*="border-left-color: #ec4899"]:hover { background: #fbcfe8; }
 
 /* -- Modal -- */
 .modal {

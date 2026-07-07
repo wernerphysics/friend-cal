@@ -20,6 +20,17 @@
     <div class="day-cell{% if not d.is_current_month %} other-month{% endif %}{% if d.is_today %} today{% endif %}"
          data-date="{{ d.date }}">
       <span class="day-number">{{ d.day }}</span>
+      {% if d.date in events_by_date %}
+      <div class="events">
+        {% for ev in events_by_date[d.date] %}
+        <div class="event-chip"
+             data-event-id="{{ ev.id }}"
+             style="border-left-color: {{ ev.color or '#3b82f6' }}">
+          {{ ev.title }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
   {% endfor %}

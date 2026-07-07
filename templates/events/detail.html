@@ -1,0 +1,24 @@
+<h2 class="modal-heading">{{ event.title }}</h2>
+<div id="detail-body">
+  <p><strong>Date:</strong> {{ event.date }}</p>
+  {% if event.time %}
+  <p><strong>Time:</strong> {{ event.time }}{% if event.end_time %} &mdash; {{ event.end_time }}{% endif %}</p>
+  {% endif %}
+  {% if event.location %}
+  <p><strong>Location:</strong> {{ event.location }}</p>
+  {% endif %}
+  {% if event.description %}
+  <p><strong>Description:</strong> {{ event.description }}</p>
+  {% endif %}
+</div>
+{% if is_owner %}
+<div class="form-actions">
+  <button class="btn btn-secondary" hx-get="/events/{{ event.id }}/edit" hx-target="#detail-content" hx-swap="innerHTML">Edit</button>
+  <button class="btn btn-danger" hx-delete="/events/{{ event.id }}" hx-target="#calendar-container" hx-swap="innerHTML">Delete</button>
+  <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Close</button>
+</div>
+{% else %}
+<div class="form-actions">
+  <button type="button" onclick="closeDetailModal()" class="btn btn-secondary">Close</button>
+</div>
+{% endif %}
