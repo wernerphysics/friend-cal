@@ -10,4 +10,14 @@ dependencies = [
 ]
 
 [project.scripts]
-friend-cal = "main:app"
+friend-cal = "main:run"
+
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["main"]
+
+[tool.uv]
+package = true

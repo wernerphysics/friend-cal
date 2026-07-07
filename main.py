@@ -66,3 +66,8 @@ async def calendar_month(request: Request, year: int, month: int):
         "next_year": next_year,
         "next_month": next_month,
     })
+
+
+def run():
+    import uvicorn
+    uvicorn.run("main:app")
