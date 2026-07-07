@@ -1,13 +1,50 @@
 import calendar
+from contextlib import asynccontextmanager
 from datetime import date
-from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from starlette.templating import Jinja2Templates
 
-app = FastAPI()
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
+
+from auth import router as auth_router
+from db import init_db, engine
+from templating import templates
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_db()
+    yield
+    await engine.dispose()
+
+
+app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.include_router(auth_router)
+
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    public_paths = {"/login", "/signup"}
+    if request.url.path in public_paths or request.url.path.startswith("/static/"):
+        return await call_next(request)
+
+    user_id = request.session.get("user_id")
+    if not user_id:
+        if request.headers.get("hx-request") == "true":
+            return HTMLResponse(
+                status_code=200, headers={"HX-Redirect": "/login"}
+            )
+        return RedirectResponse(url="/login", status_code=302)
+
+    return await call_next(request)
+
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key="change-this-secret-key-in-production",
+)
 
 
 def build_calendar(year: int, month: int):

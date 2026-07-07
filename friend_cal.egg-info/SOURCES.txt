@@ -1,9 +1,0 @@
-README.md
-main.py
-pyproject.toml
-friend_cal.egg-info/PKG-INFO
-friend_cal.egg-info/SOURCES.txt
-friend_cal.egg-info/dependency_links.txt
-friend_cal.egg-info/entry_points.txt
-friend_cal.egg-info/requires.txt
-friend_cal.egg-info/top_level.txt

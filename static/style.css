@@ -25,6 +25,22 @@ body {
   color: #16213e;
 }
 
+.title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.title-bar .title {
+  margin-bottom: 0;
+}
+
+.logout-btn {
+  font-size: 0.78rem;
+  padding: 5px 12px;
+}
+
 /* -- Calendar header -- */
 .calendar-header {
   display: flex;
@@ -287,4 +303,48 @@ body {
 #detail-body p strong {
   font-weight: 600;
   color: #1f2937;
+}
+
+/* -- Auth forms -- */
+.auth-form {
+  max-width: 400px;
+  margin: 40px auto;
+  background: #fff;
+  padding: 28px 24px;
+  border-radius: 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.form-heading {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #1f2937;
+}
+
+.form-error {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  margin-bottom: 16px;
+  border: 1px solid #fecaca;
+}
+
+.form-footer {
+  text-align: center;
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.form-footer a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.form-footer a:hover {
+  text-decoration: underline;
 }

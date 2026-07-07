@@ -10,7 +10,10 @@
 </head>
 <body>
   <div class="container">
-    <h1 class="title">Friend Calendar</h1>
+    <div class="title-bar">
+      <h1 class="title">Friend Calendar</h1>
+      <button hx-post="/logout" hx-target="body" class="btn btn-secondary logout-btn">Logout</button>
+    </div>
     <div id="calendar-container">
       {% include "calendar.html" %}
     </div>
