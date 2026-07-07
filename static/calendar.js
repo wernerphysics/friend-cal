@@ -1,7 +1,6 @@
 /* ---- Modal helpers ---- */
 
 function openModal(date) {
-  document.getElementById("event-date").value = date;
   document.getElementById("event-form").reset();
   document.getElementById("event-date").value = date;
   document.getElementById("create-heading").textContent = "New Event — " + date;
@@ -28,6 +27,7 @@ document.addEventListener("click", function (e) {
   if (chip) {
     e.stopPropagation();
     const eventId = chip.dataset.eventId;
+    openDetailModal();
     htmx.ajax("GET", "/events/" + eventId, {
       target: "#detail-content",
       swap: "innerHTML",

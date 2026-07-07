@@ -1,16 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Sign Up - Friend Calendar</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-</head>
-<body>
+{% extends "base.html" %}
+
+{% block title %}Sign Up - Friend Calendar{% endblock %}
+
+{% block body %}
   <div class="container">
     <h1 class="title">Friend Calendar</h1>
-    <form hx-post="/signup" hx-target="this" hx-swap="outerHTML" class="auth-form">
+    <form hx-post="/signup" hx-target="this" hx-swap="outerHTML"
+          hx-select=".auth-form" class="auth-form">
       <h2 class="form-heading">Sign Up</h2>
       {% if error %}
       <p class="form-error">{{ error }}</p>
@@ -33,5 +29,4 @@
       <p class="form-footer">Already have an account? <a href="/login">Log in</a></p>
     </form>
   </div>
-</body>
-</html>
+{% endblock %}

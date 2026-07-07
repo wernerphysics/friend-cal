@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Depends, Request
+from fastapi.responses import HTMLResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 import bcrypt
@@ -7,6 +7,7 @@ import bcrypt
 from db import get_session
 from models import User, InviteCode
 from templating import templates
+from web import redirect
 from datetime import datetime, timezone
 
 router = APIRouter()
@@ -42,9 +43,7 @@ async def login(request: Request, session: AsyncSession = Depends(get_session)):
     request.session["user_id"] = user.id
     request.session["user_name"] = user.name
 
-    if request.headers.get("hx-request") == "true":
-        return HTMLResponse(status_code=200, headers={"HX-Redirect": "/"})
-    return RedirectResponse(url="/", status_code=302)
+    return redirect(request, "/")
 
 
 @router.get("/signup", response_class=HTMLResponse)
@@ -99,14 +98,10 @@ async def signup(request: Request, session: AsyncSession = Depends(get_session))
     request.session["user_id"] = user_id
     request.session["user_name"] = user_name
 
-    if request.headers.get("hx-request") == "true":
-        return HTMLResponse(status_code=200, headers={"HX-Redirect": "/"})
-    return RedirectResponse(url="/", status_code=302)
+    return redirect(request, "/")
 
 
 @router.post("/logout")
 async def logout(request: Request):
     request.session.clear()
-    if request.headers.get("hx-request") == "true":
-        return HTMLResponse(status_code=200, headers={"HX-Redirect": "/login"})
-    return RedirectResponse(url="/login", status_code=302)
+    return redirect(request, "/login")

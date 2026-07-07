@@ -1,0 +1,12 @@
+{% macro color_options(selected=None) %}
+  {% for value, label in [
+    ("#3b82f6", "Blue"),
+    ("#ef4444", "Red"),
+    ("#10b981", "Green"),
+    ("#f59e0b", "Yellow"),
+    ("#8b5cf6", "Purple"),
+    ("#ec4899", "Pink"),
+  ] %}
+  <option value="{{ value }}"{% if selected == value %} selected{% endif %}>{{ label }}</option>
+  {% endfor %}
+{% endmacro %}

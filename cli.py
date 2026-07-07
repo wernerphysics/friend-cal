@@ -1,12 +1,15 @@
 import asyncio
 import secrets
 import sys
+import uuid
 from datetime import date
 
 from db import init_db, engine, get_session
-from models import InviteCode, Event, User
+from models import InviteCode, User
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+
+import nextcloud
 
 
 async def generate():
@@ -22,7 +25,6 @@ async def generate():
 
 async def seed():
     await init_db()
-    from datetime import timedelta
 
     async with AsyncSession(engine) as session:
         result = await session.execute(select(User))
@@ -52,18 +54,18 @@ async def seed():
             except ValueError:
                 event_date = date(year, month, 1)
 
-            ev = Event(
-                title=title,
-                date=event_date,
-                time=time,
-                end_time=end_time,
-                description=desc,
-                color=color,
-                created_by=user.id,
-            )
-            session.add(ev)
+            ev = {
+                "uid": str(uuid.uuid4()),
+                "title": title,
+                "date": event_date,
+                "time": time,
+                "end_time": end_time,
+                "description": desc,
+                "color": color,
+                "created_by": str(user.id),
+            }
+            await nextcloud.create_event(ev)
 
-        await session.commit()
         user_name = user.name
         print(f"Seeded {len(events_data)} events for {user_name} in {today.strftime('%B %Y')}")
     await engine.dispose()

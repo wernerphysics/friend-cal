@@ -1,159 +1,123 @@
-import calendar
-from datetime import date, datetime, timezone
+import uuid
+from datetime import date
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
-from sqlmodel import select
-from sqlmodel.ext.asyncio.session import AsyncSession
 
 from calendar_service import calendar_context
-from db import get_session
-from models import Event
 from templating import templates
+
+import nextcloud
 
 router = APIRouter()
 
 
-def _user_id(request: Request) -> int:
-    return request.session["user_id"]
+def _user_id(request: Request) -> str:
+    return str(request.session["user_id"])
 
 
-def _user_name(request: Request) -> str:
-    return request.session.get("user_name", "")
+def _parse_date(value) -> date | None:
+    if not value:
+        return None
+    try:
+        return date.fromisoformat(value)
+    except ValueError:
+        return None
 
 
 @router.post("/events", response_class=HTMLResponse)
-async def create_event(
-    request: Request,
-    session: AsyncSession = Depends(get_session),
-):
+async def create_event(request: Request):
     form = await request.form()
     title = form.get("title", "").strip()
-    event_date = form.get("date", "")
-    year = int(form.get("year", date.today().year))
-    month = int(form.get("month", date.today().month))
+    event_date = _parse_date(form.get("date")) or date.today()
 
-    if not title or not event_date:
-        return await _render_calendar(request, year, month, session)
+    if not title or not form.get("date"):
+        return await _render_calendar(request, event_date.year, event_date.month)
 
-    ev = Event(
-        title=title,
-        date=date.fromisoformat(event_date),
-        time=form.get("time") or None,
-        end_time=form.get("end_time") or None,
-        description=form.get("description") or None,
-        location=form.get("location") or None,
-        color=form.get("color") or None,
-        created_by=_user_id(request),
-    )
-    session.add(ev)
-    await session.commit()
-    return await _render_calendar(request, year, month, session)
+    ev = {
+        "uid": str(uuid.uuid4()),
+        "title": title,
+        "date": event_date,
+        "time": form.get("time") or None,
+        "end_time": form.get("end_time") or None,
+        "description": form.get("description") or None,
+        "location": form.get("location") or None,
+        "color": form.get("color") or None,
+        "created_by": _user_id(request),
+    }
+    await nextcloud.create_event(ev)
+    return await _render_calendar(request, event_date.year, event_date.month)
 
 
 @router.get("/events/{event_id}", response_class=HTMLResponse)
-async def event_detail(
-    request: Request,
-    event_id: int,
-    session: AsyncSession = Depends(get_session),
-):
-    ev = await session.get(Event, event_id)
+async def event_detail(request: Request, event_id: str):
+    ev = await nextcloud.get_event(event_id)
     if not ev:
         return HTMLResponse("", status_code=404)
 
-    uid = _user_id(request)
-    year, month = ev.date.year, ev.date.month
-
     return templates.TemplateResponse(request, "events/detail.html", {
         "event": ev,
-        "is_owner": ev.created_by == uid,
-        "year": year,
-        "month": month,
+        "is_owner": ev.get("created_by") == _user_id(request),
     })
 
 
 @router.get("/events/{event_id}/edit", response_class=HTMLResponse)
-async def event_edit_form(
-    request: Request,
-    event_id: int,
-    session: AsyncSession = Depends(get_session),
-):
-    ev = await session.get(Event, event_id)
+async def event_edit_form(request: Request, event_id: str):
+    ev = await nextcloud.get_event(event_id)
     if not ev:
         return HTMLResponse("", status_code=404)
 
-    uid = _user_id(request)
-    if ev.created_by != uid:
+    if ev.get("created_by") != _user_id(request):
         return HTMLResponse("", status_code=403)
 
     return templates.TemplateResponse(request, "events/edit_form.html", {
         "event": ev,
-        "year": ev.date.year,
-        "month": ev.date.month,
     })
 
 
 @router.put("/events/{event_id}", response_class=HTMLResponse)
-async def update_event(
-    request: Request,
-    event_id: int,
-    session: AsyncSession = Depends(get_session),
-):
-    ev = await session.get(Event, event_id)
+async def update_event(request: Request, event_id: str):
+    ev = await nextcloud.get_event(event_id)
     if not ev:
         return HTMLResponse("", status_code=404)
 
-    if ev.created_by != _user_id(request):
+    if ev.get("created_by") != _user_id(request):
         return HTMLResponse("", status_code=403)
 
-    ev_year = ev.date.year
-    ev_month = ev.date.month
-
     form = await request.form()
-    ev.title = form.get("title", ev.title)
-    ev.time = form.get("time") or None
-    ev.end_time = form.get("end_time") or None
-    ev.description = form.get("description") or None
-    ev.location = form.get("location") or None
-    ev.color = form.get("color") or None
+    ev["title"] = form.get("title", ev["title"])
+    ev["time"] = form.get("time") or None
+    ev["end_time"] = form.get("end_time") or None
+    ev["description"] = form.get("description") or None
+    ev["location"] = form.get("location") or None
+    ev["color"] = form.get("color") or None
 
-    date_str = form.get("date")
-    if date_str:
-        ev.date = date.fromisoformat(date_str)
-        ev_year = ev.date.year
-        ev_month = ev.date.month
+    new_date = _parse_date(form.get("date"))
+    if new_date:
+        ev["date"] = new_date
 
-    year_str = form.get("year")
-    month_str = form.get("month")
-    year = int(year_str) if year_str else ev_year
-    month = int(month_str) if month_str else ev_month
+    year, month = ev["date"].year, ev["date"].month
 
-    session.add(ev)
-    await session.commit()
+    await nextcloud.update_event(event_id, ev)
 
-    return await _render_calendar(request, year, month, session)
+    return await _render_calendar(request, year, month)
 
 
 @router.delete("/events/{event_id}", response_class=HTMLResponse)
-async def delete_event(
-    request: Request,
-    event_id: int,
-    session: AsyncSession = Depends(get_session),
-):
-    ev = await session.get(Event, event_id)
+async def delete_event(request: Request, event_id: str):
+    ev = await nextcloud.get_event(event_id)
     if not ev:
         return HTMLResponse("", status_code=404)
 
-    if ev.created_by != _user_id(request):
+    if ev.get("created_by") != _user_id(request):
         return HTMLResponse("", status_code=403)
 
-    year, month = ev.date.year, ev.date.month
-    await session.delete(ev)
-    await session.commit()
+    year, month = ev["date"].year, ev["date"].month
+    await nextcloud.delete_event(event_id)
 
-    return await _render_calendar(request, year, month, session)
+    return await _render_calendar(request, year, month)
 
 
-async def _render_calendar(request, year, month, session):
-    ctx = await calendar_context(year, month, request, session)
+async def _render_calendar(request, year, month):
+    ctx = await calendar_context(year, month, request)
     return templates.TemplateResponse(request, "calendar.html", ctx)

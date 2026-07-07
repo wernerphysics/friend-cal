@@ -1,17 +1,33 @@
+import os
 from contextlib import asynccontextmanager
 from datetime import date
+from pathlib import Path
 
-from fastapi import Depends, FastAPI, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+
+def _load_env():
+    env_path = Path(__file__).parent / ".env"
+    if env_path.exists():
+        for line in env_path.read_text().splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, val = line.partition("=")
+            os.environ.setdefault(key.strip(), val.strip())
+
+
+_load_env()
+
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
-from sqlmodel.ext.asyncio.session import AsyncSession
 from starlette.middleware.sessions import SessionMiddleware
 
 from auth import router as auth_router
 from calendar_service import calendar_context
-from db import get_session, init_db, engine
+from db import init_db, engine
 from events import router as events_router
 from templating import templates
+from web import redirect
 
 
 @asynccontextmanager
@@ -35,25 +51,21 @@ async def auth_middleware(request: Request, call_next):
 
     user_id = request.session.get("user_id")
     if not user_id:
-        if request.headers.get("hx-request") == "true":
-            return HTMLResponse(
-                status_code=200, headers={"HX-Redirect": "/login"}
-            )
-        return RedirectResponse(url="/login", status_code=302)
+        return redirect(request, "/login")
 
     return await call_next(request)
 
 
 app.add_middleware(
     SessionMiddleware,
-    secret_key="change-this-secret-key-in-production",
+    secret_key=os.getenv("SESSION_SECRET_KEY", "change-this-secret-key-in-production"),
 )
 
 
 @app.get("/", response_class=HTMLResponse)
-async def index(request: Request, session=Depends(get_session)):
+async def index(request: Request):
     today = date.today()
-    ctx = await calendar_context(today.year, today.month, request, session)
+    ctx = await calendar_context(today.year, today.month, request)
     ctx["user_name"] = request.session.get("user_name", "")
     return templates.TemplateResponse(request, "index.html", ctx)
 
@@ -63,11 +75,10 @@ async def calendar_month(
     request: Request,
     year: int,
     month: int,
-    session=Depends(get_session),
 ):
     if month < 1 or month > 12:
         month = date.today().month
-    ctx = await calendar_context(year, month, request, session)
+    ctx = await calendar_context(year, month, request)
     return templates.TemplateResponse(request, "calendar.html", ctx)
 
 

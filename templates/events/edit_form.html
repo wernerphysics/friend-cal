@@ -1,7 +1,6 @@
+{% from "macros.html" import color_options %}
 <h2 class="modal-heading">Edit Event</h2>
 <form hx-put="/events/{{ event.id }}" hx-target="#calendar-container" hx-swap="innerHTML">
-  <input type="hidden" name="year" value="{{ year }}">
-  <input type="hidden" name="month" value="{{ month }}">
   <input type="hidden" name="date" value="{{ event.date }}">
   <div class="form-group">
     <label for="edit-title">Title</label>
@@ -26,12 +25,7 @@
   <div class="form-group">
     <label for="edit-color">Color</label>
     <select id="edit-color" name="color">
-      <option value="#3b82f6" {% if event.color == '#3b82f6' %}selected{% endif %}>Blue</option>
-      <option value="#ef4444" {% if event.color == '#ef4444' %}selected{% endif %}>Red</option>
-      <option value="#10b981" {% if event.color == '#10b981' %}selected{% endif %}>Green</option>
-      <option value="#f59e0b" {% if event.color == '#f59e0b' %}selected{% endif %}>Yellow</option>
-      <option value="#8b5cf6" {% if event.color == '#8b5cf6' %}selected{% endif %}>Purple</option>
-      <option value="#ec4899" {% if event.color == '#ec4899' %}selected{% endif %}>Pink</option>
+      {{ color_options(event.color) }}
     </select>
   </div>
   <div class="form-actions">

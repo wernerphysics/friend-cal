@@ -1,9 +1,7 @@
 import calendar
 from datetime import date
 
-from sqlmodel import select
-
-from models import Event
+import nextcloud
 
 
 def build_calendar(year: int, month: int):
@@ -23,22 +21,10 @@ def build_calendar(year: int, month: int):
     return weeks
 
 
-async def get_month_events(year: int, month: int, session):
-    start = date(year, month, 1)
-    if month == 12:
-        end = date(year + 1, 1, 1)
-    else:
-        end = date(year, month + 1, 1)
-    result = await session.execute(
-        select(Event).where(Event.date >= start, Event.date < end)
-    )
-    return result.scalars().all()
-
-
 def group_events_by_date(events):
     by_date = {}
     for ev in events:
-        ds = ev.date.isoformat()
+        ds = ev["date"].isoformat()
         by_date.setdefault(ds, []).append(ev)
     return by_date
 
@@ -51,10 +37,10 @@ def get_nav_dates(year: int, month: int):
     return prev_year, prev_month, next_year, next_month
 
 
-async def calendar_context(year: int, month: int, request, session):
+async def calendar_context(year: int, month: int, request):
     today = date.today()
     weeks = build_calendar(year, month)
-    events = await get_month_events(year, month, session)
+    events = await nextcloud.get_month_events(year, month)
     events_by_date = group_events_by_date(events)
     prev_year, prev_month, next_year, next_month = get_nav_dates(year, month)
     return {
